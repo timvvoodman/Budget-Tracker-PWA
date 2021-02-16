@@ -1,7 +1,7 @@
 {
   "name": "budget-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "An application designed to keep track of your budget. Works offline as and is set up as a progressive web app for ease of access for mobile users",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/coding-boot-camp/unit18hw.git"
+    "url": "https://github.com/timvvoodman/Budget-Tracker-PWA"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Tim Woodman",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/coding-boot-camp/unit18hw/issues"
+    "url": "https://github.com/timvvoodman/Budget-Tracker-PWA/issues"
   },
-  "homepage": "https://github.com/coding-boot-camp/unit18hw#readme",
+  "homepage": "https://github.com/timvvoodman/Budget-Tracker-PWA#readme",
   "dependencies": {
     "compression": "^1.7.4",
     "express": "^4.17.1",
