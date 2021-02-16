@@ -10,33 +10,32 @@ const FILES_TO_CACHE = [
   "https://cdn.jsdelivr.net/npm/chart.js@2.8.0",
 ];
 
-const CACHE_NAME = "static-cache-v2";
-const DATA_CACHE_NAME = "data-cache-v1";
+const STATIC_CACHE = "static-cache-v2";
+const DATA_CACHE = "data-cache-v1";
 
-//Install Service Worker
-self.addEventListener("install", function (event) {
-  //Pre Cache Image Data
+self.addEventListener("install", (event) => {
+  //Existing cahe transaction data
   event.waitUntil(
-    caches.open(DATA_CACHE_NAME).then((cache) => cache.add("/api/images"))
+    caches.open(DATA_CACHE).then((cache) => cache.add("/api/transaction"))
   );
 
-  //Pre Cache all static assetts
+  //Static assets
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
+    caches.open(STATIC_CACHE).then((cache) => cache.addAll(FILES_TO_CACHE))
   );
-
-  //instruct browser to activate the service worker once
-  // it has finished installing
+  //Activate once installed
   self.skipWaiting();
 });
 
-//Activate Service Worker and Remove old Data from the Cache
-self.addEventListener("activate", function (event) {
+self.addEventListener("activate", (event) => {
+  const currentCache = [DATA_CACHE, STATIC_CACHE];
+
+  //Prevent duplicates in cache by checking keys
   event.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(
         keyList.map((key) => {
-          if (key !== CACHE_NAME && key !== DATA_CACHE_NAME) {
+          if (!currentCache.includes(key)) {
             console.log("Removing old cache data", key);
             return caches.delete(key);
           }
@@ -44,26 +43,27 @@ self.addEventListener("activate", function (event) {
       );
     })
   );
+
   self.clients.claim();
 });
 
-//Enable the server worker to intercept network requests
-self.addEventListener("fetch", function (event) {
-  if (event.request.url.includes("/api/")) {
+//Manage online/offline behavior for transacions with cache
+self.addEventListener("fetch", (event) => {
+  if (event.request.url.includes("/api/transaction")) {
     event.respondWith(
       caches
-        .open(DATA_CACHE_NAME)
+        .open(DATA_CACHE)
         .then((cache) => {
           return fetch(event.request)
             .then((response) => {
-              // If the response was good, clone it and store it in the cache.
+              // If good response...store in cache
               if (response.status === 200) {
                 cache.put(event.request.url, response.clone());
               }
               return response;
             })
             .catch((err) => {
-              // Network request failed, try to get it from the cache.
+              //if Network request failed...try to fetch data from cache.
               return cache.match(event.request);
             });
         })
@@ -72,11 +72,11 @@ self.addEventListener("fetch", function (event) {
     return;
   }
 
-  //Serve static files from the cache
+  // Retreive and serve serve static assets using "offline-first" approach.
   event.respondWith(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open(STATIC_CACHE).then((cache) => {
       return cache.match(event.request).then((response) => {
-        return response || fetch(evt.request);
+        return response || fetch(event.request);
       });
     })
   );
